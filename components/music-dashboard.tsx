@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils"
 // Vercel → Settings → Environment Variables
 // ============================================================
 const YT_API_KEY = process.env.NEXT_PUBLIC_YT_API_KEY || ""
+console.log("API KEY:", YT_API_KEY ? "✅ cargada" : "❌ vacía")
 
 // ============================================================
 // INTERFACES
@@ -250,7 +251,7 @@ export function MusicDashboard() {
 
     if (!YT_API_KEY) { setTrendingItems(FALLBACK); setLoadingTrending(false); return }
 
-    fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&videoCategoryId=10&regionCode=CO&maxResults=6&key=${YT_API_KEY}`)
+    fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=CO&maxResults=6&key=${YT_API_KEY}`)
       .then((r) => r.json())
       .then((data) => {
         if (!data.items?.length) { setTrendingItems(FALLBACK); return }
@@ -370,7 +371,7 @@ export function MusicDashboard() {
     setIsSearching(true); setShowResults(true)
     try {
       const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=8&q=${encodeURIComponent(searchQuery)}&key=${YT_API_KEY}`
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${encodeURIComponent(searchQuery)}&key=${YT_API_KEY}`
       )
       const data = await res.json()
       setSearchResults((data.items || []).map((item: any) => ({
@@ -403,7 +404,7 @@ export function MusicDashboard() {
       const terms = ["musica andina popular", "cumbia colombiana 2024", "latin pop trending"]
       const q = terms[Math.floor(Math.random() * terms.length)]
       const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=10&q=${encodeURIComponent(q)}&key=${YT_API_KEY}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(q)}&key=${YT_API_KEY}`
       )
       const data = await res.json()
       const items = data.items || []
