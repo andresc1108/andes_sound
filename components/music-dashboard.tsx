@@ -181,9 +181,9 @@ const ACCENT_COLORS = ["#8B1A1A", "#1A5C8B", "#5C1A8B", "#1A8B5C", "#8B5C1A", "#
 // CANCIONES INICIALES (videoIds verificados)
 
 const INITIAL_SONGS: Song[] = [
-  { id: "kjarkas-saya", title: "Saya Morena", artist: "Los Kjarkas", duration: "4:12", durationSeconds: 252, coverUrl: "https://i.ytimg.com/vi/Z5UWFh5TzwQ/mqdefault.jpg", videoId: "Z5UWFh5TzwQ", liked: false },
-  { id: "kalamarka-way", title: "Wayayay", artist: "Kalamarka", duration: "3:52", durationSeconds: 232, coverUrl: "https://i.ytimg.com/vi/q9vCPqKH3kY/mqdefault.jpg", videoId: "q9vCPqKH3kY", liked: false },
-  { id: "kalamarka-jil", title: "Jilguero", artist: "Kala Marka", duration: "4:29", durationSeconds: 269, coverUrl: "https://i.ytimg.com/vi/S7Jw6QKGU4A/mqdefault.jpg", videoId: "S7Jw6QKGU4A", liked: false },
+  { id: "alex-campos-silencio", title: "El Sonido del Silencio", artist: "Alex Campos", duration: "4:20", durationSeconds: 260, coverUrl: "https://img.youtube.com/vi/boaEb4rAZt4/hqdefault.jpg", videoId: "boaEb4rAZt4", liked: false },
+  { id: "voz-cantico-revelacion", title: "Voz de Cántico", artist: "Revelación Salem", duration: "4:23", durationSeconds: 263, coverUrl: "https://img.youtube.com/vi/JfNs0SpZm50/hqdefault.jpg", videoId: "JfNs0SpZm50", liked: false },
+  { id: "la33-soledad", title: "Soledad", artist: "La-33", duration: "4:46", durationSeconds: 286, coverUrl: "https://img.youtube.com/vi/mLznpUGX1Pw/hqdefault.jpg", videoId: "mLznpUGX1Pw", liked: false },
 ]
 
 
@@ -379,6 +379,18 @@ export function MusicDashboard() {
     setCurrentSong((p) => p ? { ...p, liked: v } : p); syncPlaylist()
   }, [currentSong, syncPlaylist])
 
+  // FUNCIÓN AUXILIAR: Convertir duración ISO 8601 de YouTube
+  const parseDuration = (duration: string) => {
+    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
+    const hours = parseInt(match?.[1] || 0)
+    const minutes = parseInt(match?.[2] || 0)
+    const seconds = parseInt(match?.[3] || 0)
+    const totalSeconds = hours * 3600 + minutes * 60 + seconds
+    const mins = Math.floor(totalSeconds / 60)
+    const secs = totalSeconds % 60
+    return { duration: `${mins}:${secs.toString().padStart(2, "0")}`, durationSeconds: totalSeconds }
+  }
+
   // BÚSQUEDA YOUTUBE
 
   const searchYouTube = useCallback(async () => {
@@ -389,15 +401,30 @@ export function MusicDashboard() {
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${encodeURIComponent(searchQuery)}&key=${YT_API_KEY}`
       )
       const data = await res.json()
-      setSearchResults((data.items || []).map((item: any) => ({
-        id: item.id.videoId,
-        title: item.snippet.title,
-        artist: item.snippet.channelTitle,
-        duration: "—",
-        durationSeconds: 0,
-        coverUrl: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "",
-        videoId: item.id.videoId,
-      })))
+      const videoIds = (data.items || []).map((item: any) => item.id.videoId).join(",")
+      if (!videoIds) { setSearchResults([]); return }
+      
+      const resDetails = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${YT_API_KEY}`
+      )
+      const detailsData = await resDetails.json()
+      const durationMap = detailsData.items.reduce((acc: any, item: any) => {
+        acc[item.id] = parseDuration(item.contentDetails.duration)
+        return acc
+      }, {})
+      
+      setSearchResults((data.items || []).map((item: any) => {
+        const durInfo = durationMap[item.id.videoId] || { duration: "—", durationSeconds: 0 }
+        return {
+          id: item.id.videoId,
+          title: item.snippet.title,
+          artist: item.snippet.channelTitle,
+          duration: durInfo.duration,
+          durationSeconds: durInfo.durationSeconds,
+          coverUrl: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "",
+          videoId: item.id.videoId,
+        }
+      }))
     } catch { setSearchResults([]) }
     finally { setIsSearching(false) }
   }, [searchQuery])
@@ -424,20 +451,26 @@ export function MusicDashboard() {
       const items = data.items || []
       if (items.length) {
         const item = items[Math.floor(Math.random() * items.length)]
+        const videoId = item.id.videoId
+        const resDetails = await fetch(
+          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${YT_API_KEY}`
+        )
+        const detailsData = await resDetails.json()
+        const durInfo = detailsData.items?.[0] ? parseDuration(detailsData.items[0].contentDetails.duration) : { duration: "—", durationSeconds: 0 }
         const song: Song = {
           id: `roulette-${Date.now()}`,
           title: item.snippet.title,
           artist: item.snippet.channelTitle,
-          duration: "—",
-          durationSeconds: 0,
+          duration: durInfo.duration,
+          durationSeconds: durInfo.durationSeconds,
           coverUrl: item.snippet.thumbnails?.medium?.url || "",
-          videoId: item.id.videoId,
+          videoId: videoId,
         }
         dll.current.insertAtHead(song); syncPlaylist(); playSong(song)
       }
     } catch { const r = dll.current.getRandom(); if (r) playSong(r) }
     finally { setTimeout(() => setIsSpinning(false), 1500) }
-  }, [isSpinning, syncPlaylist])
+  }, [isSpinning, syncPlaylist, parseDuration])
 
   // REPRODUCTOR
 
@@ -471,18 +504,36 @@ export function MusicDashboard() {
   const formatTime = (sec: number) => `${Math.floor(sec / 60)}:${Math.floor(sec % 60).toString().padStart(2, "0")}`
   const getCurrentTime = () => { try { return ytPlayerRef.current?.getCurrentTime?.() || 0 } catch { return 0 } }
 
-  const playTrending = useCallback((trend: TrendingItem) => {
-    const song: Song = {
-      id: `trend-${trend.videoId}-${Date.now()}`,
-      title: trend.title,
-      artist: trend.artist,
-      duration: "—",
-      durationSeconds: 0,
-      coverUrl: trend.coverUrl,
-      videoId: trend.videoId,
+  const playTrending = useCallback(async (trend: TrendingItem) => {
+    try {
+      const resDetails = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${trend.videoId}&key=${YT_API_KEY}`
+      )
+      const detailsData = await resDetails.json()
+      const durInfo = detailsData.items?.[0] ? parseDuration(detailsData.items[0].contentDetails.duration) : { duration: "—", durationSeconds: 0 }
+      const song: Song = {
+        id: `trend-${trend.videoId}-${Date.now()}`,
+        title: trend.title,
+        artist: trend.artist,
+        duration: durInfo.duration,
+        durationSeconds: durInfo.durationSeconds,
+        coverUrl: trend.coverUrl,
+        videoId: trend.videoId,
+      }
+      dll.current.insertAtHead(song); syncPlaylist(); playSong(song)
+    } catch {
+      const song: Song = {
+        id: `trend-${trend.videoId}-${Date.now()}`,
+        title: trend.title,
+        artist: trend.artist,
+        duration: "—",
+        durationSeconds: 0,
+        coverUrl: trend.coverUrl,
+        videoId: trend.videoId,
+      }
+      dll.current.insertAtHead(song); syncPlaylist(); playSong(song)
     }
-    dll.current.insertAtHead(song); syncPlaylist(); playSong(song)
-  }, [syncPlaylist, playSong])
+  }, [syncPlaylist, playSong, parseDuration])
 
   // VISTAS DEL MENÚ
 
