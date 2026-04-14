@@ -540,7 +540,7 @@ export function MusicDashboard() {
   const renderMainContent = () => {
     switch (activeView) {
       case "descubrir": return (
-        <div className="px-4 md:px-8 py-6 space-y-6">
+        <div className="px-3 md:px-4 lg:px-8 py-4 md:py-6 space-y-6">
           <h2 className="text-2xl font-bold">Descubrir</h2>
           <p className="text-white/50 text-sm">Explora géneros musicales de Colombia y Latinoamérica.</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -561,7 +561,7 @@ export function MusicDashboard() {
         </div>
       )
       case "albumes": return (
-        <div className="px-4 md:px-8 py-6 space-y-6">
+        <div className="px-3 md:px-4 lg:px-8 py-4 md:py-6 space-y-6">
           <h2 className="text-2xl font-bold">Álbumes</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {["El Árbol de la Vida", "Caminantes", "Llanto de Luna", "Viento del Sur", "Tierra Viva", "Raíces"].map((album, i) => (
@@ -575,7 +575,7 @@ export function MusicDashboard() {
         </div>
       )
       case "canciones": return (
-        <div className="px-4 md:px-8 py-6 space-y-6">
+        <div className="px-3 md:px-4 lg:px-8 py-4 md:py-6 space-y-6">
           <h2 className="text-2xl font-bold">Canciones</h2>
           <div className="bg-[#121212] rounded-xl border border-white/5 overflow-hidden">
             <table className="w-full">
@@ -607,7 +607,7 @@ export function MusicDashboard() {
         </div>
       )
       case "artistas": return (
-        <div className="px-4 md:px-8 py-6 space-y-6">
+        <div className="px-3 md:px-4 lg:px-8 py-4 md:py-6 space-y-6">
           <h2 className="text-2xl font-bold">Artistas</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {["Los Kjarkas", "Kalamarka", "Savia Andina", "Gr. Femenino Bolivia", "Kala Marka", "Inti-Illimani"].map((artist, i) => (
@@ -627,7 +627,7 @@ export function MusicDashboard() {
   }
 
   const renderInicio = () => (
-    <div className="px-4 md:px-8 py-6 space-y-6 w-full max-w-full">
+    <div className="px-3 md:px-4 lg:px-8 py-4 md:py-6 space-y-6 w-full max-w-full">
 
       {/* Tendencias en YouTube */}
       <section>
@@ -816,10 +816,24 @@ export function MusicDashboard() {
         <div ref={ytContainerRef} id="yt-hidden-player" />
       </div>
 
-      <div className="flex min-h-screen">
+      <div className="flex flex-col md:flex-row min-h-screen bg-[#050505]">
+
+        {/* ---- HEADER MÓVIL ---- */}
+        <header className="md:hidden h-14 bg-[#121212]/80 backdrop-blur-xl border-b border-white/5 flex-shrink-0">
+          <div className="flex items-center justify-start px-4 py-2 h-full">
+            <button className="flex items-center gap-3 hover:opacity-80 transition-opacity" onClick={() => setActiveView("inicio")}>
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Gemini_Generated_Image_nhymfbnhymfbnhym-removebg-preview-WS8m76nVgvPv6AM7C5JqfLz7EF9BkO.png"
+                alt="Andes Sound Logo"
+                className="w-10 h-10 object-contain"
+              />
+              <span className="text-base font-bold">Andes Sound</span>
+            </button>
+          </div>
+        </header>
 
         {/* ---- SIDEBAR IZQUIERDO ---- */}
-        <aside className="hidden md:flex flex-col w-[220px] lg:w-[260px] bg-[#121212]/80 backdrop-blur-xl border-r border-white/5 h-screen sticky top-0">
+        <aside className="hidden md:flex flex-col w-[220px] lg:w-[260px] bg-[#121212]/80 backdrop-blur-xl border-r border-white/5 h-screen sticky top-0 flex-shrink-0">
           <div className="flex flex-col h-full p-4 lg:p-6">
 
             {/* Logo — click lleva a Inicio */}
@@ -885,7 +899,7 @@ export function MusicDashboard() {
         </aside>
 
         {/* ---- CONTENIDO PRINCIPAL ---- */}
-        <main className="flex-1 pb-40 md:pb-28 overflow-x-hidden">{renderMainContent()}</main>
+        <main className="flex-1 w-full overflow-y-auto md:pb-28 pb-40">{renderMainContent()}</main>
 
         {/* ---- SIDEBAR DERECHO ---- */}
         <aside className="hidden lg:flex flex-col w-[320px] xl:w-[350px] bg-[#121212]/80 backdrop-blur-xl border-l border-white/5 h-screen sticky top-0 overflow-hidden">
@@ -1127,6 +1141,29 @@ export function MusicDashboard() {
               <Button variant="ghost" size="icon" onClick={() => { setShowLyrics(!showLyrics); setShowQueue(false) }} className={cn("w-12 h-12", showLyrics ? "text-[#FF0000]" : "text-white/50")}><Mic2 className="w-6 h-6" /></Button>
               <Button variant="ghost" size="icon" onClick={() => { setShowQueue(!showQueue); setShowLyrics(false) }} className={cn("w-12 h-12", showQueue ? "text-[#FF0000]" : "text-white/50")}><ListMusic className="w-6 h-6" /></Button>
             </div>
+
+            {/* Letra en móvil */}
+            {showLyrics && (
+              <div className="flex-1 overflow-y-auto px-8 pb-6 bg-[#0a0a0a] rounded-xl mx-4 mb-4">
+                <p className="text-xs font-semibold text-white/50 mb-3 mt-3">Letra</p>
+                <LyricsDisplay artist={currentSong.artist} title={currentSong.title} />
+              </div>
+            )}
+
+            {/* Queue en móvil */}
+            {showQueue && (
+              <div className="flex-1 overflow-y-auto px-8 pb-6 bg-[#0a0a0a] rounded-xl mx-4 mb-4">
+                <p className="text-xs font-semibold text-white/50 mb-3 mt-3">Cola</p>
+                <div className="space-y-2">
+                  {playlist.map((s, i) => (
+                    <div key={s.id} className={cn("flex items-center gap-2 py-2 cursor-pointer hover:bg-white/5 rounded px-2 text-xs", s.id === currentSong?.id && "text-[#FF0000]")} onClick={() => { playSong(s); setShowQueue(false) }}>
+                      <span className="text-[10px] text-white/30 w-4">{i + 1}</span>
+                      <span className="truncate flex-1">{s.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
