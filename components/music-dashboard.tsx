@@ -199,6 +199,38 @@ const INITIAL_SONGS: Song[] = [
 // ============================================================
 // COMPONENTE PRINCIPAL
 // ============================================================
+function LyricsDisplay({ artist, title }: { artist: string; title: string }) {
+  const [lyrics, setLyrics] = useState<string>("")
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+  if (!artist || !title) return
+  setLoading(true)
+  setLyrics("")
+
+  // Intenta extraer artista del título si tiene formato "Artista - Canción"
+  let searchArtist = artist
+  let searchTitle = title
+  if (title.includes(" - ")) {
+    const parts = title.split(" - ")
+    searchArtist = parts[0].trim()
+    searchTitle = parts[1].trim()
+  }
+
+  fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(searchArtist)}/${encodeURIComponent(searchTitle)}`)
+    .then((r) => r.json())
+    .then((data) => setLyrics(data.lyrics || "Letra no encontrada para esta canción"))
+    .catch(() => setLyrics("Letra no encontrada para esta canción"))
+    .finally(() => setLoading(false))
+}, [artist, title])
+
+  if (loading) return <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin text-[#FF0000]" /></div>
+
+  return (
+    <p className="text-xs text-white/40 leading-relaxed whitespace-pre-line">{lyrics}</p>
+  )
+}
+
 export function MusicDashboard() {
   const dll = useRef(new DoublyLinkedList())
 
@@ -912,7 +944,7 @@ export function MusicDashboard() {
             {showLyrics && (
               <div className="mt-3 bg-[#050505] rounded-xl border border-white/5 p-3 max-h-40 overflow-y-auto">
                 <p className="text-xs font-semibold text-white/50 mb-2">Letra</p>
-                <p className="text-xs text-white/40 italic leading-relaxed">Las letras no están disponibles offline. Conecta una API como Musixmatch para mostrarlas.</p>
+                <LyricsDisplay artist={currentSong?.artist || ""} title={currentSong?.title || ""} />
               </div>
             )}
           </div>
