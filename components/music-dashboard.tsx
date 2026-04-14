@@ -33,16 +33,9 @@ import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
-// ============================================================
-// API KEY — SIEMPRE desde variable de entorno
-// .env.local → NEXT_PUBLIC_YT_API_KEY=tu_key
-// Vercel → Settings → Environment Variables
-// ============================================================
 const YT_API_KEY = process.env.NEXT_PUBLIC_YT_API_KEY || ""
 
-// ============================================================
 // INTERFACES
-// ============================================================
 interface Song {
   id: string
   title: string
@@ -62,9 +55,9 @@ interface TrendingItem {
   color: string
 }
 
-// ============================================================
+
 // LISTA DOBLEMENTE ENLAZADA (DLL)
-// ============================================================
+
 class DLLNode {
   data: Song; prev: DLLNode | null = null; next: DLLNode | null = null
   constructor(data: Song) { this.data = data }
@@ -144,9 +137,8 @@ class DoublyLinkedList {
   }
 }
 
-// ============================================================
 // SVG PLACEHOLDER — fallback cuando no hay imagen
-// ============================================================
+
 function SvgPlaceholder({ color = "#1a1a2e", title = "" }: { color?: string; title?: string }) {
   return (
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
@@ -182,23 +174,21 @@ function SafeImg({ src, alt, className, color }: { src: string; alt: string; cla
   return <img src={src} alt={alt} className={className} onError={() => setFailed(true)} loading="lazy" />
 }
 
-// ============================================================
-// COLORES DE ACENTO para cada item
-// ============================================================
+
 const ACCENT_COLORS = ["#8B1A1A", "#1A5C8B", "#5C1A8B", "#1A8B5C", "#8B5C1A", "#4A1A8B"]
 
-// ============================================================
+
 // CANCIONES INICIALES (videoIds verificados)
-// ============================================================
+
 const INITIAL_SONGS: Song[] = [
   { id: "kjarkas-saya", title: "Saya Morena", artist: "Los Kjarkas", duration: "4:12", durationSeconds: 252, coverUrl: "https://i.ytimg.com/vi/Z5UWFh5TzwQ/mqdefault.jpg", videoId: "Z5UWFh5TzwQ", liked: false },
   { id: "kalamarka-way", title: "Wayayay", artist: "Kalamarka", duration: "3:52", durationSeconds: 232, coverUrl: "https://i.ytimg.com/vi/q9vCPqKH3kY/mqdefault.jpg", videoId: "q9vCPqKH3kY", liked: false },
   { id: "kalamarka-jil", title: "Jilguero", artist: "Kala Marka", duration: "4:29", durationSeconds: 269, coverUrl: "https://i.ytimg.com/vi/S7Jw6QKGU4A/mqdefault.jpg", videoId: "S7Jw6QKGU4A", liked: false },
 ]
 
-// ============================================================
+
 // COMPONENTE PRINCIPAL
-// ============================================================
+
 function LyricsDisplay({ artist, title }: { artist: string; title: string }) {
   const [lyrics, setLyrics] = useState<string>("")
   const [loading, setLoading] = useState(true)
@@ -267,9 +257,8 @@ export function MusicDashboard() {
   const progressInterval = useRef<NodeJS.Timeout | null>(null)
   const skipNextRef = useRef(() => {})
 
-  // ============================================================
   // TRENDING desde YouTube Data API v3
-  // ============================================================
+  
   useEffect(() => {
     const FALLBACK: TrendingItem[] = [
       { title: "Saya Morena", artist: "Los Kjarkas", videoId: "Z5UWFh5TzwQ", coverUrl: "https://i.ytimg.com/vi/Z5UWFh5TzwQ/mqdefault.jpg", color: "#8B1A1A" },
@@ -298,17 +287,14 @@ export function MusicDashboard() {
       .finally(() => setLoadingTrending(false))
   }, [])
 
-  // ============================================================
   // INICIALIZAR DLL
-  // ============================================================
+
   useEffect(() => {
     INITIAL_SONGS.forEach((s) => dll.current.insertAtTail(s))
     setPlaylist(dll.current.toArray())
   }, [])
 
-  // ============================================================
   // YOUTUBE IFRAME API (audio oculto para control de tiempo)
-  // ============================================================
   useEffect(() => {
     if (typeof window === "undefined") return
     const init = () => {
@@ -360,9 +346,8 @@ export function MusicDashboard() {
     return () => { if (progressInterval.current) clearInterval(progressInterval.current) }
   }, [isPlaying])
 
-  // ============================================================
   // DLL OPERATIONS
-  // ============================================================
+
   const syncPlaylist = useCallback(() => setPlaylist(dll.current.toArray()), [])
 
   const makeSong = (): Song => ({
@@ -394,9 +379,8 @@ export function MusicDashboard() {
     setCurrentSong((p) => p ? { ...p, liked: v } : p); syncPlaylist()
   }, [currentSong, syncPlaylist])
 
-  // ============================================================
   // BÚSQUEDA YOUTUBE
-  // ============================================================
+
   const searchYouTube = useCallback(async () => {
     if (!searchQuery.trim()) return
     setIsSearching(true); setShowResults(true)
@@ -425,9 +409,8 @@ export function MusicDashboard() {
     syncPlaylist(); setShowResults(false); setSearchQuery(""); setAddingId(null)
   }, [syncPlaylist])
 
-  // ============================================================
   // RULETA
-  // ============================================================
+
   const spinRoulette = useCallback(async () => {
     if (isSpinning) return
     setIsSpinning(true)
@@ -456,9 +439,8 @@ export function MusicDashboard() {
     finally { setTimeout(() => setIsSpinning(false), 1500) }
   }, [isSpinning, syncPlaylist])
 
-  // ============================================================
   // REPRODUCTOR
-  // ============================================================
+
   const playSong = useCallback((song: Song) => {
     setCurrentSong(song); setIsPlaying(true); setProgress(0)
     setRecentlyPlayed((prev) => [song, ...prev.filter((s) => s.id !== song.id)].slice(0, 15))
@@ -502,9 +484,8 @@ export function MusicDashboard() {
     dll.current.insertAtHead(song); syncPlaylist(); playSong(song)
   }, [syncPlaylist, playSong])
 
-  // ============================================================
   // VISTAS DEL MENÚ
-  // ============================================================
+
   const renderMainContent = () => {
     switch (activeView) {
       case "descubrir": return (
@@ -776,9 +757,7 @@ export function MusicDashboard() {
     </div>
   )
 
-  // ============================================================
   // RENDER PRINCIPAL
-  // ============================================================
   return (
     <div className="min-h-screen bg-[#050505] text-white">
       {/* YouTube hidden player para control de tiempo/eventos */}
