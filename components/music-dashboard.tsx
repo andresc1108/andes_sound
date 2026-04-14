@@ -381,10 +381,10 @@ export function MusicDashboard() {
 
   // FUNCIÓN AUXILIAR: Convertir duración ISO 8601 de YouTube
   const parseDuration = (duration: string) => {
-    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
-    const hours = parseInt(match?.[1] || 0)
-    const minutes = parseInt(match?.[2] || 0)
-    const seconds = parseInt(match?.[3] || 0)
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+    const hours = match ? parseInt(match[1] || "0") : 0
+    const minutes = match ? parseInt(match[2] || "0") : 0
+    const seconds = match ? parseInt(match[3] || "0") : 0
     const totalSeconds = hours * 3600 + minutes * 60 + seconds
     const mins = Math.floor(totalSeconds / 60)
     const secs = totalSeconds % 60
