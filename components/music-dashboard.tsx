@@ -39,7 +39,6 @@ import { cn } from "@/lib/utils"
 // Vercel → Settings → Environment Variables
 // ============================================================
 const YT_API_KEY = process.env.NEXT_PUBLIC_YT_API_KEY || ""
-console.log("API KEY:", YT_API_KEY ? "✅ cargada" : "❌ vacía")
 
 // ============================================================
 // INTERFACES
@@ -862,7 +861,7 @@ export function MusicDashboard() {
                   {currentSong.videoId ? (
                     <iframe
                       key={currentSong.videoId}
-                      src={`https://www.youtube.com/embed/${currentSong.videoId}?autoplay=1&controls=1&rel=0&modestbranding=1`}
+                      src={`https://www.youtube.com/embed/${currentSong.videoId}?autoplay=0&controls=0&rel=0&modestbranding=1`}
                       className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen title={currentSong.title}
                     />
                   ) : (
@@ -1028,7 +1027,7 @@ export function MusicDashboard() {
             </div>
             {currentSong.videoId ? (
               <div className="mx-8 rounded-2xl overflow-hidden aspect-video">
-                <iframe key={currentSong.videoId} src={`https://www.youtube.com/embed/${currentSong.videoId}?autoplay=1&controls=1&rel=0`}
+                <iframe key={currentSong.videoId} src={`https://www.youtube.com/embed/${currentSong.videoId}?autoplay=0&controls=0&rel=0`}
                   className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen title={currentSong.title} />
               </div>
             ) : (
